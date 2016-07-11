@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-PACKAGE_SH_URL = "https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh"
+node[:gitlab] ||= {}
+
+# Set default version.
+node[:gitlab][:version] ||= '8.9.5'
 
 # Install the necessary dependencies.
 include_recipe 'gitlab::dependency'
@@ -11,19 +14,30 @@ service "postfix" do
   action [:enable, :start]
 end
 
-execute "set firewall" do
-  user "root"
-  command "lokkit -s http -s ssh"
+if node[:platform] == 'redhat'
+  execute "set firewall" do
+    user "root"
+    command "lokkit -s http -s ssh"
+  end
 end
 
 execute "add package" do
-  command "curl -sS #{PACKAGE_SH_URL} | sudo bash"
+  command "curl -LJO #{node[:gitlab][:install_url]}"
 end
 
-package 'gitlab-ce' do
-  user "root"
-  action :install
+case node[:platform]
+when 'redhat'
+  execute "rpm" do
+    user "root"
+    command "rpm -i gitlab-ce-#{node[:gitlab][:type]}.rpm"
+  end
+when 'debian', 'ubuntu'
+  execute "dpkg" do
+    user "root"
+    command "dpkg -i gitlab-ce_#{node[:gitlab][:type]}.deb"
+  end
 end
+
 
 execute "reconfigure" do
   user "root"
