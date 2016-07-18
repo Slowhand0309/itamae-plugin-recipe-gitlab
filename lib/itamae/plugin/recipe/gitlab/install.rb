@@ -22,14 +22,14 @@ if node[:platform] == 'redhat'
 end
 
 execute "add package" do
-  command "curl -LJO #{node[:gitlab][:install_url]}"
+  command "curl #{node[:gitlab][:curl_opt]} #{node[:gitlab][:install_url]}"
 end
 
 case node[:platform]
 when 'redhat'
-  execute "rpm" do
+  execute "yum" do
     user "root"
-    command "rpm -i gitlab-ce-#{node[:gitlab][:type]}.rpm"
+    command "yum -y install gitlab-ce"
   end
 when 'debian', 'ubuntu'
   execute "dpkg" do
