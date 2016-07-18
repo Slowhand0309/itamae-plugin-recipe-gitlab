@@ -27,9 +27,9 @@ end
 
 case node[:platform]
 when 'redhat'
-  execute "yum" do
+  package "gitlab-ce" do
     user "root"
-    command "yum -y install gitlab-ce"
+    action :install
   end
 when 'debian', 'ubuntu'
   execute "dpkg" do
